@@ -25,6 +25,11 @@ public class ValueProducerTest {
     public static class ConstantValueProducer implements ValueProducer {
 
         @Override
+        public boolean isCustomSerializationToObject() {
+            return true;
+        }
+
+        @Override
         public Object serializeToObject(Object sourceValue) {
             return "constantValue__test";
         }

@@ -8,6 +8,10 @@ public interface ValueProducer {
         return value;
     }
 
+    default boolean isCustomSerializationToObject() {
+        return false;
+    }
+
     default Object serializeToObject(Object sourceValue) {
         return null;
     }

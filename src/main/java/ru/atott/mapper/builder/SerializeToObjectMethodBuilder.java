@@ -74,7 +74,7 @@ public class SerializeToObjectMethodBuilder {
                 body.append("java.util.List objectValue = new java.util.LinkedList();");
                 body.append("if (sourceValue == null) { sourceValue = java.util.Collections.emptyList(); }");
                 body.append("for (int i = 0; i < sourceValue.size(); i++) {");
-                body.append("objectValue.add(").append(convertEffectiveValue("sourceValue.get(i)", effectiveTypeName, false)).append(");");
+                body.append("objectValue.add(").append(convertEffectiveValue("sourceValue.get(i)", effectiveTypeName)).append(");");
                 body.append("}");
                 if (!optional) {
                     body.append("result.").append(setterName).append("(objectValue);");
@@ -87,13 +87,19 @@ public class SerializeToObjectMethodBuilder {
 
             body.append("{");
             body.append("Object sourceValue = source.get(\"").append(fieldName).append("\");");
+            body.append("Object objectValue = null;");
             if (valueProducers.contains(beanField)) {
                 String valueProducerFieldName = IntrospectionUtils.getValueProducerFieldName(beanField);
                 body.append("sourceValue = ").append(valueProducerFieldName).append(".prepareToObjectSourceValue(sourceValue);");
-                body.append("result.").append(setterName).append("(").append(convertEffectiveValue("sourceValue", effectiveTypeName, optional)).append(");");
+                body.append("if (").append(valueProducerFieldName).append(".isCustomSerializationToObject()) {");
+                body.append("objectValue = ").append(valueProducerFieldName).append(".serializeToObject(sourceValue);");
+                body.append("} else {");
+                body.append("objectValue = ").append(convertEffectiveValue("sourceValue", effectiveTypeName)).append(";");
+                body.append("}");
             } else {
-                body.append("result.").append(setterName).append("(").append(convertEffectiveValue("sourceValue", effectiveTypeName, optional)).append(");");
+                body.append("objectValue = ").append(convertEffectiveValue("sourceValue", effectiveTypeName)).append(";");
             }
+            body.append("result.").append(setterName).append("(").append(wrapOptional("objectValue", effectiveTypeName, optional)).append(");");
             body.append("}");
         });
 
@@ -103,77 +109,53 @@ public class SerializeToObjectMethodBuilder {
         return CtNewMethod.make(body.toString(), this.ctClass);
     }
 
-    private String convertEffectiveValue(String source, String effectiveTypeName, boolean optional) {
-        if (effectiveTypeName.equals("java.lang.String")) {
-            if (!optional) {
-                return "vc.convertToString(" + source + ")";
+    private String wrapOptional(String source, String castToType, boolean optional) {
+        if (!optional) {
+            if (castToType != null) {
+                return "(" + castToType + ")" + source;
             } else {
-                return "java.util.Optional.ofNullable(vc.convertToString(" + source + "))";
+                return source;
             }
+        } else {
+            return "java.util.Optional.ofNullable(" + source + ")";
+        }
+    }
+
+    private String convertEffectiveValue(String source, String effectiveTypeName) {
+        if (effectiveTypeName.equals("java.lang.String")) {
+            return "vc.convertToString(" + source + ")";
         }
 
         if (effectiveTypeName.equals("java.lang.Byte")) {
-            if (!optional) {
-                return "vc.convertToByteObject(" + source + ")";
-            } else {
-                return "java.util.Optional.ofNullable(vc.convertToByteObject(" + source + "))";
-            }
+            return "vc.convertToByteObject(" + source + ")";
         }
 
         if (effectiveTypeName.equals("java.lang.Short")) {
-            if (!optional) {
-                return "vc.convertToShortObject(" + source + ")";
-            } else {
-                return "java.util.Optional.ofNullable(vc.convertToShortObject(" + source + "))";
-            }
+            return "vc.convertToShortObject(" + source + ")";
         }
 
         if (effectiveTypeName.equals("java.lang.Integer")) {
-            if (!optional) {
-                return "vc.convertToInteger(" + source + ")";
-            } else {
-                return "java.util.Optional.ofNullable(vc.convertToInteger(" + source + "))";
-            }
+            return "vc.convertToInteger(" + source + ")";
         }
 
         if (effectiveTypeName.equals("java.lang.Long")) {
-            if (!optional) {
-                return "vc.convertToLongObject(" + source + ")";
-            } else {
-                return "java.util.Optional.ofNullable(vc.convertToLongObject(" + source + "))";
-            }
+            return "vc.convertToLongObject(" + source + ")";
         }
 
         if (effectiveTypeName.equals("java.lang.Float")) {
-            if (!optional) {
-                return "vc.convertToFloatObject(" + source + ")";
-            } else {
-                return "java.util.Optional.ofNullable(vc.convertToFloatObject(" + source + "))";
-            }
+            return "vc.convertToFloatObject(" + source + ")";
         }
 
         if (effectiveTypeName.equals("java.lang.Double")) {
-            if (!optional) {
-                return "vc.convertToDoubleObject(" + source + ")";
-            } else {
-                return "java.util.Optional.ofNullable(vc.convertToDoubleObject(" + source + "))";
-            }
+            return "vc.convertToDoubleObject(" + source + ")";
         }
 
         if (effectiveTypeName.equals("java.lang.Character")) {
-            if (!optional) {
-                return "vc.convertToCharacter(" + source + ")";
-            } else {
-                return "java.util.Optional.ofNullable(vc.convertToCharacter(" + source + "))";
-            }
+            return "vc.convertToCharacter(" + source + ")";
         }
 
         if (effectiveTypeName.equals("java.lang.Boolean")) {
-            if (!optional) {
-                return "vc.convertToBooleanObject(" + source + ")";
-            } else {
-                return "java.util.Optional.ofNullable(vc.convertToBooleanObject(" + source + "))";
-            }
+            return "vc.convertToBooleanObject(" + source + ")";
         }
 
         if (effectiveTypeName.equals("byte")) {
@@ -209,10 +191,6 @@ public class SerializeToObjectMethodBuilder {
         }
 
         // Смапать сложный объект.
-        if (!optional) {
-            return "(" + effectiveTypeName + ") vc.convertToObject(" + source + ", " + effectiveTypeName + ".class)";
-        } else {
-            return "java.util.Optional.ofNullable(vc.convertToObject(" + source + ", " + effectiveTypeName + ".class))";
-        }
+        return "(" + effectiveTypeName + ") vc.convertToObject(" + source + ", " + effectiveTypeName + ".class)";
     }
 }
