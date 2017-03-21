@@ -1,6 +1,8 @@
 package ru.atott.mapper.builder;
 
 import javassist.*;
+import ru.atott.mapper.convertion.CustomValueConverter;
+import ru.atott.mapper.convertion.ValueConverter;
 import ru.atott.mapper.introspection.BeanField;
 import ru.atott.mapper.introspection.BeanIntrospection;
 import ru.atott.mapper.introspection.IntrospectionUtils;
@@ -9,7 +11,6 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Supplier;
 
 public class SerializeToObjectMethodBuilder {
 
@@ -20,6 +21,8 @@ public class SerializeToObjectMethodBuilder {
     private ClassPool classPool;
 
     private Set<BeanField> valueProducers = new HashSet<>();
+
+    private ValueConverter valueConverter;
 
     public SerializeToObjectMethodBuilder settClass(Class tClass) {
         this.tClass = tClass;
@@ -46,10 +49,16 @@ public class SerializeToObjectMethodBuilder {
         return this;
     }
 
+    public SerializeToObjectMethodBuilder setValueConverter(ValueConverter valueConverter) {
+        this.valueConverter = valueConverter;
+        return this;
+    }
+
     public CtMethod build() throws CannotCompileException, NotFoundException {
         this.tClass = Objects.requireNonNull(tClass);
         this.ctClass = Objects.requireNonNull(ctClass);
         this.classPool = Objects.requireNonNull(classPool);
+        this.valueConverter = Objects.requireNonNull(this.valueConverter);
 
         StringBuilder body = new StringBuilder();
         body.append("public Object serializeToObject(java.util.Map source) { ");
@@ -195,6 +204,16 @@ public class SerializeToObjectMethodBuilder {
 
         if (effectiveTypeName.equals("char")) {
             return "vc.convertToChar(" + source + ")";
+        }
+
+        try {
+            Class effectiveClass = Class.forName(effectiveTypeName);
+            CustomValueConverter customValueConverter = this.valueConverter.getCustomValueConverter(effectiveClass);
+            if (customValueConverter != null) {
+                return "(" + effectiveTypeName + ") vc.getCustomValueConverter(" + effectiveTypeName + ".class).convertToObject(" + source + ")";
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
         }
 
         // Смапать сложный объект.

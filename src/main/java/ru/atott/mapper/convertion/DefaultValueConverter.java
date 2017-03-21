@@ -3,14 +3,20 @@ package ru.atott.mapper.convertion;
 import ru.atott.mapper.Mapper;
 import ru.atott.mapper.MapperFactory;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
-public class SimpleValueConverter implements ValueConverter {
+public class DefaultValueConverter implements ValueConverter {
 
     private MapperFactory mapperFactory;
 
-    public SimpleValueConverter(MapperFactory mapperFactory) {
+    private Map<Class, Optional<CustomValueConverter>> customValueConverterMap = new HashMap<>();
+
+    private final Object customValueConverterMapMonitor = new Object();
+
+    public DefaultValueConverter(MapperFactory mapperFactory) {
         mapperFactory = Objects.requireNonNull(mapperFactory);
 
         this.mapperFactory = mapperFactory;
@@ -178,5 +184,23 @@ public class SimpleValueConverter implements ValueConverter {
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    @Override
+    public final CustomValueConverter getCustomValueConverter(Class tClass) {
+        Optional<CustomValueConverter> result = customValueConverterMap.get(tClass);
+
+        if (result == null) {
+            synchronized (customValueConverterMapMonitor) {
+                result = Optional.ofNullable(initializeCustomValueConverter(tClass));
+                customValueConverterMap.put(tClass, result);
+            }
+        }
+
+        return result.orElse(null);
+    }
+
+    protected CustomValueConverter initializeCustomValueConverter(Class tClass) {
+        return null;
     }
 }

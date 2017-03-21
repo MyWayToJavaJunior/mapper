@@ -4,7 +4,7 @@ import javassist.ClassPool;
 import javassist.CtClass;
 import ru.atott.mapper.builder.MapperClassBuilder;
 import ru.atott.mapper.convertion.ValueConverter;
-import ru.atott.mapper.convertion.SimpleValueConverter;
+import ru.atott.mapper.convertion.DefaultValueConverter;
 import ru.atott.mapper.convertion.ValueProducer;
 import ru.atott.mapper.introspection.BeanField;
 import ru.atott.mapper.introspection.BeanIntrospection;
@@ -23,10 +23,10 @@ public class MapperFactory {
 
     private static final Object monitor = new Object();
 
-    private ValueConverter pvc;
+    private ValueConverter valueConverter;
 
     public MapperFactory() {
-        this.pvc = new SimpleValueConverter(this);
+        this.valueConverter = initializeValueConverter();
     }
 
     public <T> Mapper<T> createMapper(Class<T> tClass) throws Exception {
@@ -46,7 +46,8 @@ public class MapperFactory {
 
                     MapperClassBuilder builder = new MapperClassBuilder()
                             .setClassPool(classPool)
-                            .settClass(tClass);
+                            .settClass(tClass)
+                            .setValueConverter(valueConverter);
 
                     Map<BeanField, ValueProducer> valueProducers = new HashMap<>();
                     beanIntrospection.getBeanFields().forEach(beanField -> {
@@ -62,7 +63,7 @@ public class MapperFactory {
 
                     objectSerializer = (Mapper<T>) ctClass.toClass().newInstance();
                     Field vcField = objectSerializer.getClass().getField("vc");
-                    vcField.set(objectSerializer, pvc);
+                    vcField.set(objectSerializer, valueConverter);
 
                     Mapper finalObjectSerializer = objectSerializer;
                     valueProducers.forEach((beanField, valueProducer) -> {
@@ -84,5 +85,9 @@ public class MapperFactory {
 
     protected Optional<ValueProducer> getValueProducer(BeanField field) {
         return Optional.empty();
+    }
+
+    protected ValueConverter initializeValueConverter() {
+        return new DefaultValueConverter(this);
     }
 }

@@ -20,6 +20,8 @@ public class MapperClassBuilder {
 
     private Set<BeanField> valueProducers = new HashSet<>();
 
+    private ValueConverter valueConverter;
+
     public MapperClassBuilder settClass(Class tClass) {
         this.tClass = tClass;
         return this;
@@ -35,9 +37,15 @@ public class MapperClassBuilder {
         return this;
     }
 
+    public MapperClassBuilder setValueConverter(ValueConverter valueConverter) {
+        this.valueConverter = valueConverter;
+        return this;
+    }
+
     public CtClass build() throws NotFoundException, CannotCompileException {
         tClass = Objects.requireNonNull(tClass);
         classPool = Objects.requireNonNull(classPool);
+        valueConverter = Objects.requireNonNull(valueConverter);
 
         CtClass ctClass = classPool.makeClass(IntrospectionUtils.getSerializerCtClassName(tClass));
         ctClass.setInterfaces(new CtClass[] { classPool.get(Mapper.class.getName()) });
@@ -76,6 +84,7 @@ public class MapperClassBuilder {
                         .setCtClass(ctClass)
                         .setClassPool(classPool)
                         .addValueProducers(valueProducers)
+                        .setValueConverter(valueConverter)
                         .build());
 
         return ctClass;

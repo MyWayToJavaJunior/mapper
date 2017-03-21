@@ -37,4 +37,6 @@ public interface ValueConverter {
     Boolean convertToBooleanObject(Object value);
 
     Object convertToObject(Object value, Class tClass);
+
+    CustomValueConverter getCustomValueConverter(Class tClass);
 }
