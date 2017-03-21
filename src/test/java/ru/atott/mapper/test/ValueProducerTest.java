@@ -17,7 +17,7 @@ public class ValueProducerTest {
     public static class TestValueProducer implements ValueProducer {
 
         @Override
-        public Object prepareToObjectSourceValue(Object value) {
+        public Object prepareToObjectSourceValue(Object value, Object context) {
             return String.valueOf(value) + "__test";
         }
     }
@@ -30,7 +30,7 @@ public class ValueProducerTest {
         }
 
         @Override
-        public Object serializeToObject(Object sourceValue) {
+        public Object serializeToObject(Object sourceValue, Object context) {
             return "constantValue__test";
         }
     }
@@ -42,7 +42,7 @@ public class ValueProducerTest {
         }
 
         @Override
-        public Object serializeToObject(Object sourceValue) {
+        public Object serializeToObject(Object sourceValue, Object context) {
             return test;
         }
 

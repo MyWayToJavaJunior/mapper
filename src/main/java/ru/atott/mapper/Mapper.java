@@ -6,5 +6,9 @@ public interface Mapper<T> {
 
     T newInstance();
 
-    T serializeToObject(Map<String, Object> source);
+    default T serializeToObject(Map<String, Object> source) {
+        return serializeToObject(source, null);
+    }
+
+    T serializeToObject(Map<String, Object> source, Object context);
 }

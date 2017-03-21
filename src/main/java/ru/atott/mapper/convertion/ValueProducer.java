@@ -2,7 +2,7 @@ package ru.atott.mapper.convertion;
 
 public interface ValueProducer {
 
-    default Object prepareToObjectSourceValue(Object value) {
+    default Object prepareToObjectSourceValue(Object value, Object context) {
         return value;
     }
 
@@ -10,7 +10,7 @@ public interface ValueProducer {
         return false;
     }
 
-    default Object serializeToObject(Object sourceValue) {
+    default Object serializeToObject(Object sourceValue, Object context) {
         return null;
     }
 }

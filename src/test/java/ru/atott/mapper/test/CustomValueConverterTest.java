@@ -50,7 +50,7 @@ public class CustomValueConverterTest {
             if (tClass.equals(ZonedDateTime.class)) {
                 return new CustomValueConverter() {
                     @Override
-                    public Object convertToObject(Object value) {
+                    public Object convertToObject(Object value, Object context) {
                         return now;
                     }
                 };
