@@ -109,4 +109,22 @@ public class MapToObjectTest {
         Assert.assertEquals("test1", nestedDump.getId());
         Assert.assertEquals("test2", nestedDump.getSimpleDump().getId());
     }
+
+    @Test
+    public void test7() throws Exception {
+        MapperFactory mapperFactory = new MapperFactory();
+        Mapper<MapDump> mapper = mapperFactory.createMapper(MapDump.class);
+
+        Map<String, Object> source = new HashMap<String, Object>() {{
+            put("id", "test1");
+            put("mapField", new HashMap<String, Object>() {{
+                put("id", "test2");
+            }});
+        }};
+
+        MapDump dump = mapper.serializeToObject(source);
+        Assert.assertNotNull(dump);
+        Assert.assertNotNull(dump.getMapField());
+        Assert.assertEquals("test2", dump.getMapField().get("id"));
+    }
 }

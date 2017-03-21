@@ -171,6 +171,15 @@ public class DefaultValueConverter implements ValueConverter {
         return convertToBoolean(value);
     }
 
+    @Override
+    public Map convertToMap(Object value) {
+        if (value == null) {
+            return null;
+        }
+
+        return (Map) value;
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public Object convertToObject(Object value, Class tClass) {

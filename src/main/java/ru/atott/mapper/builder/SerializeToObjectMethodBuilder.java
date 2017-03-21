@@ -100,7 +100,7 @@ public class SerializeToObjectMethodBuilder {
                     body.append("objectValue.add(").append(convertEffectiveValue("sourceValue.get(i)", effectiveTypeName)).append(");");
                     body.append("}");
                 }
-                body.append("result.").append(setterName).append("(" + wrapOptional("objectValue", optional) + ");");
+                body.append("result.").append(setterName).append("(").append(wrapOptional("objectValue", optional)).append(");");
                 body.append("}");
                 return;
             }
@@ -204,6 +204,10 @@ public class SerializeToObjectMethodBuilder {
 
         if (effectiveTypeName.equals("char")) {
             return "vc.convertToChar(" + source + ")";
+        }
+
+        if (effectiveTypeName.equals("java.util.Map")) {
+            return "(" + effectiveTypeName + ") vc.convertToMap(" + source + ")";
         }
 
         try {

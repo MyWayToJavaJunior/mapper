@@ -1,5 +1,7 @@
 package ru.atott.mapper.convertion;
 
+import java.util.Map;
+
 public interface ValueConverter {
 
     String convertToString(Object value);
@@ -35,6 +37,8 @@ public interface ValueConverter {
     Character convertToCharacter(Object value);
 
     Boolean convertToBooleanObject(Object value);
+
+    Map convertToMap(Object value);
 
     Object convertToObject(Object value, Class tClass);
 
