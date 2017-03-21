@@ -7,12 +7,12 @@ import ru.atott.mapper.MapperFactory;
 import ru.atott.mapper.convertion.ValueProducer;
 import ru.atott.mapper.introspection.BeanField;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Supplier;
 
 public class ValueProducerTest {
+
+    static List<String> test = new ArrayList<>();
 
     public static class TestValueProducer implements ValueProducer {
 
@@ -35,6 +35,19 @@ public class ValueProducerTest {
         }
     }
 
+    public static class ListProducer implements ValueProducer {
+        @Override
+        public boolean isCustomSerializationToObject() {
+            return true;
+        }
+
+        @Override
+        public Object serializeToObject(Object sourceValue) {
+            return test;
+        }
+
+    }
+
     public static class CustomMapperFactory extends MapperFactory {
 
         @Override
@@ -45,6 +58,10 @@ public class ValueProducerTest {
 
             if (field.getFieldName().equals("constantValue")) {
                 return Optional.of(new ConstantValueProducer());
+            }
+
+            if (field.getFieldName().equals("list")) {
+                return Optional.of(new ListProducer());
             }
 
             return super.getValueProducer(field);
@@ -66,6 +83,7 @@ public class ValueProducerTest {
         Assert.assertEquals("idValue__test", someBean.getId());
         Assert.assertEquals("fieldValue", someBean.getField());
         Assert.assertEquals("constantValue__test", someBean.getConstantValue());
+        Assert.assertTrue(test == someBean.getList());
     }
 
     public static class SomeBean {
@@ -75,6 +93,8 @@ public class ValueProducerTest {
         private String field;
 
         private String constantValue;
+
+        private List<String> list;
 
         public String getId() {
             return id;
@@ -98,6 +118,14 @@ public class ValueProducerTest {
 
         public void setConstantValue(String constantValue) {
             this.constantValue = constantValue;
+        }
+
+        public List<String> getList() {
+            return list;
+        }
+
+        public void setList(List<String> list) {
+            this.list = list;
         }
     }
 }

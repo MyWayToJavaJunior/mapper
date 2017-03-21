@@ -71,35 +71,46 @@ public class SerializeToObjectMethodBuilder {
                     String valueProducerFieldName = IntrospectionUtils.getValueProducerFieldName(beanField);
                     body.append("sourceValue = ").append(valueProducerFieldName).append(".prepareToObjectSourceValue(sourceValue);");
                 }
-                body.append("java.util.List objectValue = new java.util.LinkedList();");
-                body.append("if (sourceValue == null) { sourceValue = java.util.Collections.emptyList(); }");
-                body.append("for (int i = 0; i < sourceValue.size(); i++) {");
-                body.append("objectValue.add(").append(convertEffectiveValue("sourceValue.get(i)", effectiveTypeName)).append(");");
-                body.append("}");
-                if (!optional) {
-                    body.append("result.").append(setterName).append("(objectValue);");
+                body.append("java.util.List objectValue = null;");
+
+                if (valueProducers.contains(beanField)) {
+                    String valueProducerFieldName = IntrospectionUtils.getValueProducerFieldName(beanField);
+                    body.append("if (").append(valueProducerFieldName).append(".isCustomSerializationToObject()) {");
+                    body.append("objectValue = (java.util.List)").append(valueProducerFieldName).append(".serializeToObject(sourceValue);");
+                    body.append("} else {");
+                    body.append("objectValue = new java.util.LinkedList();");
+                    body.append("if (sourceValue == null) { sourceValue = java.util.Collections.emptyList(); }");
+                    body.append("for (int i = 0; i < sourceValue.size(); i++) {");
+                    body.append("objectValue.add(").append(convertEffectiveValue("sourceValue.get(i)", effectiveTypeName)).append(");");
+                    body.append("}");
+                    body.append("}");
                 } else {
-                    body.append("result.").append(setterName).append("(java.util.Optional.ofNullable(objectValue));");
+                    body.append("objectValue = new java.util.LinkedList();");
+                    body.append("if (sourceValue == null) { sourceValue = java.util.Collections.emptyList(); }");
+                    body.append("for (int i = 0; i < sourceValue.size(); i++) {");
+                    body.append("objectValue.add(").append(convertEffectiveValue("sourceValue.get(i)", effectiveTypeName)).append(");");
+                    body.append("}");
                 }
+                body.append("result.").append(setterName).append("(" + wrapOptional("objectValue", optional) + ");");
                 body.append("}");
                 return;
             }
 
             body.append("{");
             body.append("Object sourceValue = source.get(\"").append(fieldName).append("\");");
-            body.append("Object objectValue = null;");
+            body.append(effectiveTypeName).append(" objectValue;");
             if (valueProducers.contains(beanField)) {
                 String valueProducerFieldName = IntrospectionUtils.getValueProducerFieldName(beanField);
                 body.append("sourceValue = ").append(valueProducerFieldName).append(".prepareToObjectSourceValue(sourceValue);");
                 body.append("if (").append(valueProducerFieldName).append(".isCustomSerializationToObject()) {");
-                body.append("objectValue = ").append(valueProducerFieldName).append(".serializeToObject(sourceValue);");
+                body.append("objectValue = (").append(effectiveTypeName).append(")").append(valueProducerFieldName).append(".serializeToObject(sourceValue);");
                 body.append("} else {");
                 body.append("objectValue = ").append(convertEffectiveValue("sourceValue", effectiveTypeName)).append(";");
                 body.append("}");
             } else {
                 body.append("objectValue = ").append(convertEffectiveValue("sourceValue", effectiveTypeName)).append(";");
             }
-            body.append("result.").append(setterName).append("(").append(wrapOptional("objectValue", effectiveTypeName, optional)).append(");");
+            body.append("result.").append(setterName).append("(").append(wrapOptional("objectValue", optional)).append(");");
             body.append("}");
         });
 
@@ -109,13 +120,9 @@ public class SerializeToObjectMethodBuilder {
         return CtNewMethod.make(body.toString(), this.ctClass);
     }
 
-    private String wrapOptional(String source, String castToType, boolean optional) {
+    private String wrapOptional(String source, boolean optional) {
         if (!optional) {
-            if (castToType != null) {
-                return "(" + castToType + ")" + source;
-            } else {
-                return source;
-            }
+            return source;
         } else {
             return "java.util.Optional.ofNullable(" + source + ")";
         }
@@ -123,39 +130,39 @@ public class SerializeToObjectMethodBuilder {
 
     private String convertEffectiveValue(String source, String effectiveTypeName) {
         if (effectiveTypeName.equals("java.lang.String")) {
-            return "vc.convertToString(" + source + ")";
+            return "(java.lang.String) vc.convertToString(" + source + ")";
         }
 
         if (effectiveTypeName.equals("java.lang.Byte")) {
-            return "vc.convertToByteObject(" + source + ")";
+            return "(java.lang.Byte) vc.convertToByteObject(" + source + ")";
         }
 
         if (effectiveTypeName.equals("java.lang.Short")) {
-            return "vc.convertToShortObject(" + source + ")";
+            return "(java.lang.Short) vc.convertToShortObject(" + source + ")";
         }
 
         if (effectiveTypeName.equals("java.lang.Integer")) {
-            return "vc.convertToInteger(" + source + ")";
+            return "(java.lang.Integer) vc.convertToInteger(" + source + ")";
         }
 
         if (effectiveTypeName.equals("java.lang.Long")) {
-            return "vc.convertToLongObject(" + source + ")";
+            return "(java.lang.Long) vc.convertToLongObject(" + source + ")";
         }
 
         if (effectiveTypeName.equals("java.lang.Float")) {
-            return "vc.convertToFloatObject(" + source + ")";
+            return "(java.lang.Float) vc.convertToFloatObject(" + source + ")";
         }
 
         if (effectiveTypeName.equals("java.lang.Double")) {
-            return "vc.convertToDoubleObject(" + source + ")";
+            return "(java.lang.Double) vc.convertToDoubleObject(" + source + ")";
         }
 
         if (effectiveTypeName.equals("java.lang.Character")) {
-            return "vc.convertToCharacter(" + source + ")";
+            return "(java.lang.Character) vc.convertToCharacter(" + source + ")";
         }
 
         if (effectiveTypeName.equals("java.lang.Boolean")) {
-            return "vc.convertToBooleanObject(" + source + ")";
+            return "(java.lang.Boolean) vc.convertToBooleanObject(" + source + ")";
         }
 
         if (effectiveTypeName.equals("byte")) {
