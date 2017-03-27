@@ -78,14 +78,14 @@ public class SerializeToObjectMethodBuilder {
                 body.append("java.util.List sourceValue = (java.util.List) source.get(\"").append(fieldName).append("\");");
                 if (valueProducers.contains(beanField)) {
                     String valueProducerFieldName = IntrospectionUtils.getValueProducerFieldName(beanField);
-                    body.append("sourceValue = ").append(valueProducerFieldName).append(".prepareToObjectSourceValue(sourceValue, context);");
+                    body.append("sourceValue = ").append(valueProducerFieldName).append(".prepareToObjectSourceValue(sourceValue, source, context);");
                 }
                 body.append("java.util.List objectValue = null;");
 
                 if (valueProducers.contains(beanField)) {
                     String valueProducerFieldName = IntrospectionUtils.getValueProducerFieldName(beanField);
-                    body.append("if (").append(valueProducerFieldName).append(".isCustomSerializationToObject()) {");
-                    body.append("objectValue = (java.util.List)").append(valueProducerFieldName).append(".serializeToObject(sourceValue, context);");
+                    body.append("if (").append(valueProducerFieldName).append(".isCustomSerialization()) {");
+                    body.append("objectValue = (java.util.List)").append(valueProducerFieldName).append(".serialzeToObjectValue(sourceValue, source, context);");
                     body.append("} else {");
                     body.append("objectValue = new java.util.LinkedList();");
                     body.append("if (sourceValue == null) { sourceValue = java.util.Collections.emptyList(); }");
@@ -110,9 +110,9 @@ public class SerializeToObjectMethodBuilder {
             body.append(effectiveTypeName).append(" objectValue;");
             if (valueProducers.contains(beanField)) {
                 String valueProducerFieldName = IntrospectionUtils.getValueProducerFieldName(beanField);
-                body.append("sourceValue = ").append(valueProducerFieldName).append(".prepareToObjectSourceValue(sourceValue, context);");
-                body.append("if (").append(valueProducerFieldName).append(".isCustomSerializationToObject()) {");
-                body.append("objectValue = (").append(effectiveTypeName).append(")").append(valueProducerFieldName).append(".serializeToObject(sourceValue, context);");
+                body.append("sourceValue = ").append(valueProducerFieldName).append(".prepareToObjectSourceValue(sourceValue, source, context);");
+                body.append("if (").append(valueProducerFieldName).append(".isCustomSerialization()) {");
+                body.append("objectValue = (").append(effectiveTypeName).append(")").append(valueProducerFieldName).append(".serialzeToObjectValue(sourceValue, source, context);");
                 body.append("} else {");
                 body.append("objectValue = ").append(convertEffectiveValue("sourceValue", effectiveTypeName)).append(";");
                 body.append("}");

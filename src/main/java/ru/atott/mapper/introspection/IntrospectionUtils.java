@@ -7,9 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 public final class IntrospectionUtils {
 
@@ -70,11 +68,16 @@ public final class IntrospectionUtils {
     private static GenericType parseTypeSignature(SignatureAttribute.ClassType signature) throws NoSuchFieldException, IllegalAccessException {
         GenericType result = new GenericType();
 
-        Field nameField = signature.getClass().getDeclaredField("name");
+        Field nameField = SignatureAttribute.ClassType.class.getDeclaredField("name");
         nameField.setAccessible(true);
-        result.setType((String) nameField.get(signature));
 
-        Field argumentsField = signature.getClass().getDeclaredField("arguments");
+        if (signature instanceof SignatureAttribute.NestedClassType) {
+            result.setType(signature.jvmTypeName());
+        } else {
+            result.setType((String) nameField.get(signature));
+        }
+
+        Field argumentsField = SignatureAttribute.ClassType.class.getDeclaredField("arguments");
         argumentsField.setAccessible(true);
         Object[] arguments = (Object[]) argumentsField.get(signature);
         if (arguments != null) {

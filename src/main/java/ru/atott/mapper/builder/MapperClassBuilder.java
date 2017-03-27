@@ -2,11 +2,11 @@ package ru.atott.mapper.builder;
 
 import javassist.*;
 import javassist.bytecode.SignatureAttribute;
+import ru.atott.mapper.Mapper;
+import ru.atott.mapper.convertion.ValueConverter;
 import ru.atott.mapper.convertion.ValueProducer;
 import ru.atott.mapper.introspection.BeanField;
 import ru.atott.mapper.introspection.IntrospectionUtils;
-import ru.atott.mapper.Mapper;
-import ru.atott.mapper.convertion.ValueConverter;
 
 import java.util.HashSet;
 import java.util.Objects;
@@ -80,6 +80,15 @@ public class MapperClassBuilder {
 
         ctClass.addMethod(
                 new SerializeToObjectMethodBuilder()
+                        .settClass(tClass)
+                        .setCtClass(ctClass)
+                        .setClassPool(classPool)
+                        .addValueProducers(valueProducers)
+                        .setValueConverter(valueConverter)
+                        .build());
+
+        ctClass.addMethod(
+                new SerializeToMapMethodBuilder()
                         .settClass(tClass)
                         .setCtClass(ctClass)
                         .setClassPool(classPool)

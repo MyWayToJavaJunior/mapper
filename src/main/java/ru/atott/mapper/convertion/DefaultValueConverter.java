@@ -180,6 +180,20 @@ public class DefaultValueConverter implements ValueConverter {
         return (Map) value;
     }
 
+    @Override
+    public Map convertToMap(Object value, Class tClass) {
+        try {
+            if (value == null) {
+                return null;
+            }
+
+            Mapper mapper = mapperFactory.createMapper(tClass);
+            return mapper.serializeToMap(value);
+        } catch (Exception e) {
+            throw new RuntimeException(e.getMessage(), e);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     @Override
     public Object convertToObject(Object value, Class tClass) {

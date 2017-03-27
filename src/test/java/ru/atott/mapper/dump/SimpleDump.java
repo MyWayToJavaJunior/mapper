@@ -11,4 +11,10 @@ public class SimpleDump {
     public void setId(String id) {
         this.id = id;
     }
+
+    public SimpleDump() { }
+
+    public SimpleDump(String id) {
+        this.id = id;
+    }
 }

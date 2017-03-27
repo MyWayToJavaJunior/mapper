@@ -1,6 +1,7 @@
 package ru.atott.mapper.introspection;
 
 import javassist.CtClass;
+import javassist.CtField;
 import javassist.CtMethod;
 
 public class BeanField {
@@ -16,6 +17,8 @@ public class BeanField {
     private boolean optional;
 
     private boolean list;
+
+    private CtField field;
 
     public CtMethod getGetter() {
         return getter;
@@ -63,6 +66,14 @@ public class BeanField {
 
     public void setList(boolean list) {
         this.list = list;
+    }
+
+    public CtField getField() {
+        return field;
+    }
+
+    public void setField(CtField field) {
+        this.field = field;
     }
 
     @Override

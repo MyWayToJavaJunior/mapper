@@ -11,4 +11,10 @@ public interface Mapper<T> {
     }
 
     T serializeToObject(Map<String, Object> source, Object context);
+
+    default Map<String, Object> serializeToMap(Object source) {
+        return serializeToMap(source, null);
+    }
+
+    Map<String, Object> serializeToMap(Object source, Object context);
 }

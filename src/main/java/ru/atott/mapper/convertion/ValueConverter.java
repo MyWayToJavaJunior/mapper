@@ -38,7 +38,15 @@ public interface ValueConverter {
 
     Boolean convertToBooleanObject(Object value);
 
+    /**
+     * Используется при конвертировании исходного значения в Map-у в методу toObject.
+     */
     Map convertToMap(Object value);
+
+    /**
+     * Используется при исходного значения в Map-у в методе toMap
+     */
+    Map convertToMap(Object value, Class tClass);
 
     Object convertToObject(Object value, Class tClass);
 

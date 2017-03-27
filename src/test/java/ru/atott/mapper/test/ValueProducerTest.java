@@ -17,7 +17,7 @@ public class ValueProducerTest {
     public static class TestValueProducer implements ValueProducer {
 
         @Override
-        public Object prepareToObjectSourceValue(Object value, Object context) {
+        public Object prepareToObjectSourceValue(Object value, Object sourceMap, Object context) {
             return String.valueOf(value) + "__test";
         }
     }
@@ -25,24 +25,29 @@ public class ValueProducerTest {
     public static class ConstantValueProducer implements ValueProducer {
 
         @Override
-        public boolean isCustomSerializationToObject() {
+        public boolean isCustomSerialization() {
             return true;
         }
 
         @Override
-        public Object serializeToObject(Object sourceValue, Object context) {
+        public Object serialzeToObjectValue(Object sourceValue, Object sourceMap, Object context) {
             return "constantValue__test";
+        }
+
+        @Override
+        public Object serializeToMapValue(Object sourceValue, Object context) {
+            return "mapValue1";
         }
     }
 
     public static class ListProducer implements ValueProducer {
         @Override
-        public boolean isCustomSerializationToObject() {
+        public boolean isCustomSerialization() {
             return true;
         }
 
         @Override
-        public Object serializeToObject(Object sourceValue, Object context) {
+        public Object serialzeToObjectValue(Object sourceValue, Object sourceMap, Object context) {
             return test;
         }
 
@@ -84,6 +89,16 @@ public class ValueProducerTest {
         Assert.assertEquals("fieldValue", someBean.getField());
         Assert.assertEquals("constantValue__test", someBean.getConstantValue());
         Assert.assertTrue(test == someBean.getList());
+    }
+
+    @Test
+    public void test2() throws Exception {
+        CustomMapperFactory customMapperFactory = new CustomMapperFactory();
+        Mapper<SomeBean> mapper = customMapperFactory.createMapper(SomeBean.class);
+
+        Map<String, Object> map = mapper.serializeToMap(new SomeBean());
+        Assert.assertNotNull(map);
+        Assert.assertEquals("mapValue1", map.get("constantValue"));
     }
 
     public static class SomeBean {

@@ -36,6 +36,7 @@ public class BeanIntrospection {
                         beanField.setFieldName(ctField.getName());
                         beanField.setGetter(ctClass.getDeclaredMethod(getterName, new CtClass[0]));
                         beanField.setSetter(ctClass.getDeclaredMethod(setterName, new CtClass[] { ctField.getType() }));
+                        beanField.setField(ctField);
 
                         GenericType effectiveGenericType = ctField.getGenericSignature() != null
                                 ? parseGenericTypeSignature(ctField.getGenericSignature())
@@ -71,7 +72,7 @@ public class BeanIntrospection {
         if (ctClass.getSuperclass() != null) {
             CtClass ctSuperclass = ctClass.getSuperclass();
 
-            if (!ctSuperclass.getName().equals(Object.class.getName())) {
+            if (!ctClass.isEnum() && !ctSuperclass.getName().equals(Object.class.getName())) {
                 throw new NotBeanException("Бин " + tClass.getName() + " не может быть наследником другого класса");
             }
         }
@@ -84,9 +85,8 @@ public class BeanIntrospection {
             throw new NotBeanException("Бин " + tClass.getName() + " не public");
         }
 
-        if (Modifier.isInterface(ctClass.getModifiers())
-                || Modifier.isEnum(ctClass.getModifiers())) {
-            throw new NotBeanException("Бин " + tClass.getName() + " не класс (а interface или enum)");
+        if (Modifier.isInterface(ctClass.getModifiers())) {
+            throw new NotBeanException("Бин " + tClass.getName() + " не класс (а interface)");
         }
 
         if (Modifier.isAbstract(ctClass.getModifiers())) {
@@ -97,11 +97,13 @@ public class BeanIntrospection {
         try {
             CtConstructor constructor = ctClass.getConstructor(defaultConstructorDescriptor);
 
-            if (!Modifier.isPublic(constructor.getModifiers())) {
+            if (!ctClass.isEnum() && !Modifier.isPublic(constructor.getModifiers())) {
                 throw new NotBeanException("Бин " + tClass.getName() + " не имеет public конструктора без параметров");
             }
         } catch (NotFoundException e) {
-            throw new NotBeanException("Бин " + tClass.getName() + " не имеет конструктора без параметров");
+            if (!ctClass.isEnum()) {
+                throw new NotBeanException("Бин " + tClass.getName() + " не имеет конструктора без параметров");
+            }
         }
 
         for (CtField field : Arrays.asList(ctClass.getDeclaredFields())) {
