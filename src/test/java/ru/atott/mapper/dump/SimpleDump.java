@@ -4,6 +4,16 @@ public class SimpleDump {
 
     private String id = "defaultId";
 
+    private long longField = 16;
+
+    public long getLongField() {
+        return longField;
+    }
+
+    public void setLongField(long longField) {
+        this.longField = longField;
+    }
+
     public String getId() {
         return id;
     }

@@ -24,6 +24,7 @@ public class ToMapTest {
 
         Assert.assertNotNull(map);
         Assert.assertEquals("10", map.get("id"));
+        Assert.assertEquals(16L, map.get("longField"));
     }
 
     @Test

@@ -1,14 +1,15 @@
 package ru.atott.mapper.builder;
 
 import javassist.*;
-import ru.atott.mapper.convertion.CustomValueConverter;
 import ru.atott.mapper.convertion.ValueConverter;
-import ru.atott.mapper.convertion.ValueProducer;
 import ru.atott.mapper.introspection.BeanField;
 import ru.atott.mapper.introspection.BeanIntrospection;
 import ru.atott.mapper.introspection.IntrospectionUtils;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Set;
 
 public class SerializeToMapMethodBuilder {
 
@@ -79,7 +80,8 @@ public class SerializeToMapMethodBuilder {
                 body.append("mapValue = objectSource.").append(getterName).append("().orElse(null);");
                 body.append("}");
             } else {
-                body.append("Object mapValue = objectSource.").append(getterName).append("();");
+                String value = "objectSource." + getterName + "()";
+                body.append("Object mapValue = ").append(primitiveTypeCasting(value, effectiveTypeName)).append(";");
             }
 
             if (valueProducers.contains(beanField)) {
@@ -106,7 +108,7 @@ public class SerializeToMapMethodBuilder {
                 body.append("result.put(key, listMapVaue);");
                 body.append("}");
             } else {
-                if (isUnmodifiableSourceValue(effectiveTypeName)) {
+                if (isUnmodifiableSourceValue(effectiveTypeName) || valueProducers.contains(beanField)) {
                     body.append("result.put(key, mapValue);");
                 } else {
                     body.append("result.put(key, vc.convertToMap(mapValue, ").append(effectiveTypeName).append(".class));");
@@ -122,12 +124,40 @@ public class SerializeToMapMethodBuilder {
         return CtNewMethod.make(body.toString(), this.ctClass);
     }
 
-    private String wrapOptional(String source, boolean optional) {
-        if (!optional) {
-            return source;
-        } else {
-            return "java.util.Optional.ofNullable(" + source + ")";
+    private String primitiveTypeCasting(String value, String effectiveTypeName) {
+        if (effectiveTypeName.equals("byte")) {
+            return "java.lang.Byte.valueOf((byte) " + value + ")";
         }
+
+        if (effectiveTypeName.equals("short")) {
+            return "java.lang.Short.valueOf((short) " + value + ")";
+        }
+
+        if (effectiveTypeName.equals("int")) {
+            return "java.lang.Integer.valueOf((int) " + value +")";
+        }
+
+        if (effectiveTypeName.equals("long")) {
+            return "java.lang.Long.valueOf((long) " + value + ")";
+        }
+
+        if (effectiveTypeName.equals("float")) {
+            return "java.lang.Float.valueOf((float) " + value + ")";
+        }
+
+        if (effectiveTypeName.equals("double")) {
+            return "java.lang.Double.valueOf((double) " + value + ")";
+        }
+
+        if (effectiveTypeName.equals("boolean")) {
+            return "java.lang.Boolean.valueOf((boolean) " + value + ")";
+        }
+
+        if (effectiveTypeName.equals("char")) {
+            return "java.lang.Character.valueOf((char) " + value + ")";
+        }
+
+        return value;
     }
 
     private boolean isUnmodifiableSourceValue(String effectiveTypeName) {
